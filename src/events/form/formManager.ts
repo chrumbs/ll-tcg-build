@@ -90,22 +90,50 @@ export class FormManager {
       const firstName = this.getFormValue('field-first-name');
       const lastName = this.getFormValue('field-last-name');
 
-      if (!firstName) return { valid: false, error: "Please enter the player's first name." };
-      if (!lastName) return { valid: false, error: "Please enter the player's last name." };
+      if (!firstName) {
+        const error = "Please enter the player's first name.";
+        this.showError(error);
+        return { valid: false, error };
+      }
+      if (!lastName) {
+        const error = "Please enter the player's last name.";
+        this.showError(error);
+        return { valid: false, error };
+      }
     }
 
     if (this.state.requirePokemonId) {
       const pokemonId = this.getFormValue('field-pokemon-id');
-      if (!pokemonId) return { valid: false, error: 'Please enter your Pokémon ID.' };
+      if (!pokemonId) {
+        const error = 'Please enter your Pokémon ID.';
+        this.showError(error);
+        return { valid: false, error };
+      }
     }
 
     if (this.state.requireTcgAccount) {
       const hasTcgAccount = document.querySelector('input[name="tcg-account"]:checked');
-      if (!hasTcgAccount)
-        return { valid: false, error: 'Please indicate if you have a TCG Plus account.' };
+      if (!hasTcgAccount) {
+        const error = 'Please indicate if you have a TCG Plus account.';
+        this.showError(error);
+        return { valid: false, error };
+      }
     }
 
     return { valid: true };
+  }
+
+  private showError(message: string): void {
+    const errBox = document.querySelector<HTMLElement>('[data-role="error"]');
+    if (errBox) {
+      errBox.textContent = message;
+      errBox.classList.remove('hide');
+
+      // Auto-hide after 5 seconds (same as upsell errors)
+      setTimeout(() => {
+        errBox.classList.add('hide');
+      }, 5000);
+    }
   }
 
   private getFormValue(selector: string): string {

@@ -184,12 +184,12 @@ export class TicketManager {
   private setActiveTicket(activeTicketEl: HTMLElement): void {
     // Remove active class from all tickets
     document.querySelectorAll('[data-role="ticket"]').forEach((ticket) => {
-      ticket.querySelector('.ticket-select')?.classList.remove('is-active');
+      ticket.querySelector('[data-field="checkbox"]')?.classList.remove('is-active');
       ticket.setAttribute('aria-pressed', 'false');
     });
 
     // Add active class to selected ticket
-    activeTicketEl.querySelector('.ticket-select')?.classList.add('is-active');
+    activeTicketEl.querySelector('[data-field="checkbox"]')?.classList.add('is-active');
     activeTicketEl.setAttribute('aria-pressed', 'true');
   }
 

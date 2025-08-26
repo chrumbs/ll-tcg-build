@@ -66,7 +66,9 @@ export class FormSubmission {
     const chosenVariantId = this.getChosenVariantId();
 
     if (!chosenVariantId) {
-      return { valid: false, error: 'This event is sold out.' };
+      const error = 'This event is sold out.';
+      this.showError(error); // Still handle this one here since it's not a form validation
+      return { valid: false, error };
     }
 
     // Delegate to FormManager for field validation

@@ -23,7 +23,9 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "release": "changeset publish",
-    "update": "pnpm update -i -L -r"
+    "update": "pnpm update -i -L -r",
+    "build:deploy": "pnpm build && git add . && git commit -m 'Update build files' && git push",
+    "deploy:feature": "pnpm build && git add . && read -p 'Commit message: ' msg && git commit -m \"$msg\" && git push"
   },
   "devDependencies": {
     "@changesets/changelog-git": "^0.2.0",
