@@ -1,6 +1,9 @@
 import { dateFormatter, moneyFormatter, timeFormatter } from '$utils/formatters';
+import { renderAccordions } from '$utils/renderAccordions';
 import { setTextByAttr } from '$utils/setText';
 import { formatProductId, getProductsByIDs } from '$utils/shopify';
+
+import { renderGlobe } from './home/renderGlobe';
 
 type VariantInfo = { id: string; qty: number; price: number; options: Record<string, string> };
 type ProductInfo = {
@@ -20,6 +23,16 @@ type ProductInfo = {
 
 window.Webflow ||= [];
 window.Webflow.push(async () => {
+  const globeCanvas = document.querySelector<HTMLCanvasElement>('[data-role="globe-canvas"]');
+  if (globeCanvas) renderGlobe(globeCanvas);
+
+  const accordions = Array.from(document.querySelectorAll('[ll-selector="accordion"]'));
+  if (accordions.length > 0) {
+    renderAccordions(accordions);
+  } else {
+    console.log('No accordion elements found.');
+  }
+
   const productCards = Array.from(document.querySelectorAll('[data-product-id]'));
 
   if (!productCards || productCards.length === 0) return;
@@ -103,21 +116,34 @@ window.Webflow.push(async () => {
     setTextByAttr(
       card,
       'duration',
-      productData.durationMin ? `${productData.durationMin} min` : ''
+      productData.durationMin ? `${productData.durationMin} MINS` : ''
     );
     if (productData.start) {
       setTextByAttr(card, 'date', dateFormatter(productData.start));
       setTextByAttr(card, 'time', timeFormatter(productData.start));
     }
 
-    const seatsText =
-      productData.seatsLeft > 0 ? `${productData.seatsLeft} seats left` : 'Sold out';
+    // Check if event is in the past
+    const now = new Date();
+    const isEventPast = productData.start ? productData.start < now : false;
+    const hasSeatsAvailable = productData.seatsLeft > 0;
+
+    // Event is clickable only if it has seats AND hasn't started yet
+    const clickable = hasSeatsAvailable && !isEventPast;
+
+    // Update seats text based on availability and timing
+    let seatsText = '';
+    if (isEventPast) {
+      seatsText = 'Past Event';
+    } else if (!hasSeatsAvailable) {
+      seatsText = 'Sold Out';
+    } else {
+      seatsText = `${productData.seatsLeft} Seats Open`;
+    }
     setTextByAttr(card, 'seats', seatsText);
 
-    const clickable = productData.seatsLeft > 0;
-
     // Toggle clickable class for styling (e.g., cursor, hover)
-    (card as HTMLElement).classList.toggle('is-clickable', clickable);
+    (card as HTMLElement).classList.toggle('active', clickable);
 
     // Overlay link approach: show/hide the full-card link based on availability
     const overlayLink = card.querySelector<HTMLAnchorElement>('[data-role="link"]');
@@ -138,10 +164,24 @@ window.Webflow.push(async () => {
       }
     }
 
-    // Sold-out state (styling + semantics)
+    // Inactive state (styling + semantics) - applies to both sold out AND past events
     if (!clickable) {
-      (card as HTMLElement).classList.add('is-soldout');
+      (card as HTMLElement).classList.add('inactive');
       (card as HTMLElement).setAttribute('aria-disabled', 'true');
+
+      // Add specific class for past events (for different styling if needed)
+      if (isEventPast) {
+        (card as HTMLElement).classList.add('past-event');
+      }
+
+      // Add specific class for sold out events (for different styling if needed)
+      if (!hasSeatsAvailable && !isEventPast) {
+        (card as HTMLElement).classList.add('sold-out');
+      }
+    } else {
+      // Remove inactive classes if event becomes available again
+      (card as HTMLElement).classList.remove('inactive', 'past-event', 'sold-out');
+      (card as HTMLElement).removeAttribute('aria-disabled');
     }
   });
 });

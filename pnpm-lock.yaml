@@ -14,6 +14,9 @@ importers:
       '@shopify/storefront-api-client':
         specifier: ^1.0.9
         version: 1.0.9
+      accordion-js:
+        specifier: ^3.4.1
+        version: 3.4.1
     devDependencies:
       '@changesets/changelog-git':
         specifier: ^0.2.0
@@ -434,6 +437,9 @@ packages:
   '@typescript-eslint/visitor-keys@8.23.0':
     resolution: {integrity: sha512-oWWhcWDLwDfu++BGTZcmXWqpwtkwb5o7fxUIGksMQQDSdPW9prsSnfIOZMlsj4vBOSrcnjIUZMiIjODgGosFhQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  accordion-js@3.4.1:
+    resolution: {integrity: sha512-jPXDsRsulM3rwqgeTtAD9JCFYBD3Fl4MIHcHcj7UvCTwbgn/wD1Gi78gSb11rwTxOhylHMOM5QpoPKn+Ex2TKA==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -1476,6 +1482,8 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.23.0
       eslint-visitor-keys: 4.2.0
+
+  accordion-js@3.4.1: {}
 
   acorn-jsx@5.3.2(acorn@8.14.0):
     dependencies:

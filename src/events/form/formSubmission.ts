@@ -1,3 +1,4 @@
+import { showError } from '$utils/errorHandler';
 import { createCartWithLines } from '$utils/shopify';
 
 import type { CartManager, FormManager, ProductNode } from '../types';
@@ -39,7 +40,7 @@ export class FormSubmission {
     // Validate form
     const validation = this.validateForm();
     if (!validation.valid) {
-      this.showError(validation.error || 'Validation error');
+      showError(validation.error || 'Validation error');
       return;
     }
 
@@ -57,7 +58,7 @@ export class FormSubmission {
       window.location.href = url;
     } catch (err) {
       console.error('[events] checkout error', err);
-      this.showError('Something went wrong. Please try again.');
+      showError('Something went wrong. Please try again.');
       this.enableSubmitButton();
     }
   }
@@ -67,7 +68,7 @@ export class FormSubmission {
 
     if (!chosenVariantId) {
       const error = 'This event is sold out.';
-      this.showError(error); // Still handle this one here since it's not a form validation
+      showError(error);
       return { valid: false, error };
     }
 
@@ -172,13 +173,6 @@ export class FormSubmission {
     if (this.errBox) {
       this.errBox.textContent = '';
       this.errBox.classList.add('hide');
-    }
-  }
-
-  private showError(message: string): void {
-    if (this.errBox) {
-      this.errBox.textContent = message;
-      this.errBox.classList.remove('hide');
     }
   }
 

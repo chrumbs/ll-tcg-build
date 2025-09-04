@@ -46,7 +46,8 @@
   },
   "dependencies": {
     "@finsweet/ts-utils": "^0.40.0",
-    "@shopify/storefront-api-client": "^1.0.9"
+    "@shopify/storefront-api-client": "^1.0.9",
+    "accordion-js": "^3.4.1"
   },
   "engines": {
     "pnpm": ">=10"

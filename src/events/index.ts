@@ -1,6 +1,7 @@
+import { showError } from '$utils/errorHandler';
 import { dateFormatter, moneyFormatter, timeFormatter } from '$utils/formatters';
 import { setTextByAttr } from '$utils/setText';
-import { getEventByHandle } from '$utils/shopify';
+import { getEventByHandle, getEventByID } from '$utils/shopify';
 
 import { CartDisplay } from './cart/cartDisplay';
 import { CartManager } from './cart/cartManager';
@@ -17,13 +18,46 @@ window.Webflow.push(async () => {
   // Resolve product handle
   const metaEl = document.querySelector<HTMLElement>('#event-meta');
   const cmsHandle = metaEl?.getAttribute('data-handle') || undefined;
+  const cmsID = metaEl?.getAttribute('data-id') || undefined;
   const urlHandle = location.pathname.split('/').filter(Boolean).pop();
   const handle = cmsHandle || urlHandle || '';
+  let product: ProductNode | null = await getEventByHandle(handle);
 
-  // Fetch product
-  const product: ProductNode | null = await getEventByHandle(handle);
+  if (handle) {
+    console.log('[events] Fetching by handle:', handle);
+    product = await getEventByHandle(handle);
+  }
+
+  if (!product && cmsID) {
+    console.log('[events] Handle failed, trying CMS ID:', cmsID);
+    try {
+      product = await getEventByID(cmsID);
+
+      if (product) {
+        console.log('[events] Successfully fetched by ID:', product.title);
+      } else {
+        console.log('[events] No product found for ID:', cmsID);
+      }
+    } catch (error) {
+      console.error('[events] Failed to fetch by ID:', error);
+    }
+  }
+
+  // Final check - no product found
   if (!product) {
-    console.error('[events] No product for handle', handle);
+    console.error('[events] No product found for handle:', handle, 'or ID:', cmsID);
+
+    // Hide all event-related elements
+    document.querySelectorAll('[data-role]').forEach((el) => {
+      el.classList.add('hide');
+      el.setAttribute('aria-hidden', 'true');
+    });
+    document.querySelectorAll('[data-field]').forEach((el) => {
+      el.classList.add('hide');
+      el.setAttribute('aria-hidden', 'true');
+    });
+
+    showError('Event not found.');
     return;
   }
 
@@ -75,9 +109,9 @@ function setProductInfo(product: ProductNode): void {
   setTextByAttr(
     document,
     'duration',
-    product.duration?.value ? `${Number(product.duration.value)} min` : ''
+    product.duration?.value ? `${Number(product.duration.value)} MINS` : ''
   );
-  setTextByAttr(document, 'seats', seatsLeft > 0 ? `${seatsLeft} seats left` : 'Sold out');
+  setTextByAttr(document, 'seats', seatsLeft > 0 ? `${seatsLeft} Seats Open` : 'Sold Out');
 
   if (minPrice != null) {
     setTextByAttr(

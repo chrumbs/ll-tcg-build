@@ -73,4 +73,5 @@ export interface CartManager {
 export interface FormManager {
   getState(): FormState;
   validate(): ValidationResult;
+  showError(message: string): void;
 }

@@ -1,3 +1,5 @@
+import { showError as utilShowError } from '$utils/errorHandler';
+
 import type { FormState, ProductNode, ValidationResult } from '../types';
 
 export class FormManager {
@@ -123,17 +125,8 @@ export class FormManager {
     return { valid: true };
   }
 
-  private showError(message: string): void {
-    const errBox = document.querySelector<HTMLElement>('[data-role="error"]');
-    if (errBox) {
-      errBox.textContent = message;
-      errBox.classList.remove('hide');
-
-      // Auto-hide after 5 seconds (same as upsell errors)
-      setTimeout(() => {
-        errBox.classList.add('hide');
-      }, 5000);
-    }
+  showError(message: string): void {
+    utilShowError(message);
   }
 
   private getFormValue(selector: string): string {

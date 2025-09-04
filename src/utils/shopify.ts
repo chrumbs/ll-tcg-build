@@ -131,48 +131,65 @@ export async function getProductsByIDs(ids: (string | null)[]) {
   }
 }
 
-// Get product by handle
-export async function getProductByHandle(handle: string) {
+export async function getEventByID(id: string) {
   try {
+    const formattedId = formatProductId(id);
+
     const { data, errors } = await client.request(
       `
-      query ProductByHandle($handle: String!) {
-        productByHandle(handle: $handle) {
+      query EventByID($id: ID!) {
+        product(id: $id) {
           id
           title
-          description
           handle
-          variants(first: 10) {
-            edges {
-              node {
-                id
+          description
+          gameType:  metafield(namespace:"custom", key:"game_type") { value }
+          startTime: metafield(namespace:"custom", key:"start_time") { value }
+          duration:  metafield(namespace:"custom", key:"duration") { value }
+          format:    metafield(namespace:"custom", key:"format") { value }
+          bandai:    metafield(namespace:"custom", key:"bandai_tcg") { value }
+          complementaryProducts: metafield(namespace:"shopify--discovery--product_recommendation", key:"complementary_products") {
+            references(first: 20) {
+              edges { node { ... on Product { 
+                id 
                 title
-                quantityAvailable
-                price {
-                  amount
-                  currencyCode
+                variants(first: 4) {
+                  edges { node {
+                    id 
+                    title 
+                    quantityAvailable
+                    price { amount currencyCode }
+                  }}
                 }
-              }
+              }}}
             }
+          }
+          variants(first: 50) {
+            edges { node {
+              id
+              title
+              quantityAvailable
+              price { amount currencyCode }
+              selectedOptions { name value }
+            } }
           }
         }
       }
       `,
-      { variables: { handle } }
+      { variables: { id: formattedId } }
     );
 
     if (errors) {
       throw new Error(errors.graphQLErrors?.[0]?.message || errors.message);
     }
 
-    return data.productByHandle;
+    return data.product;
   } catch (error) {
-    console.error(`Error fetching product with handle ${handle}:`, error);
+    console.error(`Error fetching event product with ID ${id}:`, error);
     return null;
   }
 }
 
-// Update your getEventByHandle function:
 export async function getEventByHandle(handle: string) {
   try {
     const { data, errors } = await client.request(

@@ -1,5 +1,7 @@
 import { debounce } from '$utils/debounce';
+import { showError } from '$utils/errorHandler';
 import { moneyFormatter } from '$utils/formatters';
+import { setTextByAttr } from '$utils/setText';
 
 import type { CartManager, ProductNode } from '../types';
 
@@ -109,8 +111,7 @@ export class UpsellManager {
   }
 
   private setProductTitle(upsellEl: HTMLElement, title: string): void {
-    const titleEl = upsellEl.querySelector('[data-field="upsell-title"]');
-    if (titleEl) titleEl.textContent = title;
+    setTextByAttr(upsellEl, 'upsell-title', title);
   }
 
   private findDefaultVariant(variants: UpsellVariant[]): UpsellVariant | null {
@@ -139,7 +140,6 @@ export class UpsellManager {
 
     // Hide template
     variantTemplate.classList.add('hide');
-
     // Clear container
     variantsContainer.innerHTML = '';
 
@@ -220,12 +220,10 @@ export class UpsellManager {
     const stock = variant.quantityAvailable;
 
     // Update price
-    const priceEl = upsellEl.querySelector('[data-field="upsell-price"]');
-    if (priceEl) priceEl.textContent = moneyFormatter(price, currency);
+    setTextByAttr(upsellEl, 'upsell-price', moneyFormatter(price, currency));
 
     // Update stock display
-    const stockCountEl = upsellEl.querySelector('[data-field="upsell-stock-count"]');
-    if (stockCountEl) stockCountEl.textContent = stock.toString();
+    setTextByAttr(upsellEl, 'upsell-stock-count', stock.toString());
 
     const stockEl = upsellEl.querySelector<HTMLElement>('[data-field="upsell-stock"]');
     if (stockEl) {
@@ -262,11 +260,10 @@ export class UpsellManager {
     const qtyDownBtn = upsellEl.querySelector(
       '[data-field="upsell-qty-down"]'
     ) as HTMLButtonElement;
-    const qtyCountEl = upsellEl.querySelector('[data-field="upsell-qty-count"]');
 
     // Reset quantity to 1 when variant changes
     let currentQty = 1;
-    if (qtyCountEl) qtyCountEl.textContent = currentQty.toString();
+    setTextByAttr(upsellEl, 'upsell-qty-count', currentQty.toString());
 
     // Remove existing event listeners by cloning elements
     if (addBtn) {
@@ -304,14 +301,14 @@ export class UpsellManager {
     newQtyUpBtn?.addEventListener('click', () => {
       if (currentQty < maxQuantity) {
         currentQty++;
-        if (qtyCountEl) qtyCountEl.textContent = currentQty.toString();
+        setTextByAttr(upsellEl, 'upsell-qty-count', currentQty.toString());
       }
     });
 
     newQtyDownBtn?.addEventListener('click', () => {
       if (currentQty > 1) {
         currentQty--;
-        if (qtyCountEl) qtyCountEl.textContent = currentQty.toString();
+        setTextByAttr(upsellEl, 'upsell-qty-count', currentQty.toString());
       }
     });
 
@@ -362,12 +359,11 @@ export class UpsellManager {
       const availableToAdd = variant.quantityAvailable - currentCartQuantity;
 
       if (availableToAdd <= 0) {
-        this.showInventoryError(title, 'This item is already at maximum quantity in your cart.');
+        showError(`${title}: This item is already at maximum quantity in your cart.`);
         return;
       }
-      this.showInventoryError(
-        title,
-        `Only ${availableToAdd} more available. ${variant.quantityAvailable} total in stock.`
+      showError(
+        `${title}: Only ${availableToAdd} more available. ${variant.quantityAvailable} total in stock.`
       );
       return;
     }
@@ -384,20 +380,6 @@ export class UpsellManager {
 
     if (success) {
       console.log(`Added ${quantity}x ${title} to cart`);
-    }
-  }
-
-  private showInventoryError(itemTitle: string, message: string): void {
-    console.error(`Inventory Error for ${itemTitle}: ${message}`);
-
-    const errBox = document.querySelector<HTMLElement>('[data-role="error"]');
-    if (errBox) {
-      errBox.textContent = `${itemTitle}: ${message}`;
-      errBox.classList.remove('hide');
-
-      setTimeout(() => {
-        errBox.classList.add('hide');
-      }, 5000);
     }
   }
 }
