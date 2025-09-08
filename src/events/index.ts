@@ -1,5 +1,6 @@
 import { showError } from '$utils/errorHandler';
 import { dateFormatter, moneyFormatter, timeFormatter } from '$utils/formatters';
+import { renderAccordions } from '$utils/renderAccordions';
 import { setTextByAttr } from '$utils/setText';
 import { getEventByHandle, getEventByID } from '$utils/shopify';
 
@@ -13,7 +14,12 @@ import { UpsellManager } from './upsells/upsellManager';
 
 window.Webflow ||= [];
 window.Webflow.push(async () => {
-  console.log('Webflow at src/events initialized');
+  const accordions = Array.from(document.querySelectorAll('[ll-selector="accordion"]'));
+  if (accordions.length > 0) {
+    renderAccordions(accordions);
+  } else {
+    console.log('No accordion elements found.');
+  }
 
   // Resolve product handle
   const metaEl = document.querySelector<HTMLElement>('#event-meta');
