@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../bin/live-reload.js", "../../src/global/index.ts"],
+  "sourcesContent": ["new EventSource(`${SERVE_ORIGIN}/esbuild`).addEventListener('change', () => location.reload());\n", "window.Webflow ||= [];\nwindow.Webflow.push(async () => {\n  const menuCloseEls = document.querySelectorAll('[ll-selector=\"menu-close\"]');\n  const menuTrigger = document.querySelector<HTMLElement>('[ll-selector=\"menu-trigger\"]');\n\n  if (menuCloseEls && menuTrigger) {\n    menuCloseEls.forEach((el) => {\n      if (el.getAttribute('href')) return;\n      el.addEventListener('click', () => {\n        menuTrigger.click();\n      });\n    });\n  }\n});\n"],
+  "mappings": ";;;AAAA,MAAI,YAAY,GAAG,uBAAY,UAAU,EAAE,iBAAiB,UAAU,MAAM,SAAS,OAAO,CAAC;;;ACA7F,SAAO,YAAY,CAAC;AACpB,SAAO,QAAQ,KAAK,YAAY;AAC9B,UAAM,eAAe,SAAS,iBAAiB,4BAA4B;AAC3E,UAAM,cAAc,SAAS,cAA2B,8BAA8B;AAEtF,QAAI,gBAAgB,aAAa;AAC/B,mBAAa,QAAQ,CAAC,OAAO;AAC3B,YAAI,GAAG,aAAa,MAAM,EAAG;AAC7B,WAAG,iBAAiB,SAAS,MAAM;AACjC,sBAAY,MAAM;AAAA,QACpB,CAAC;AAAA,MACH,CAAC;AAAA,IACH;AAAA,EACF,CAAC;",
+  "names": []
+}

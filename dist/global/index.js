@@ -1,0 +1,1 @@
+"use strict";(()=>{window.Webflow||(window.Webflow=[]);window.Webflow.push(async()=>{let e=document.querySelectorAll('[ll-selector="menu-close"]'),l=document.querySelector('[ll-selector="menu-trigger"]');e&&l&&e.forEach(t=>{t.getAttribute("href")||t.addEventListener("click",()=>{l.click()})})});})();
