@@ -124,11 +124,5 @@ export const renderGlobe = (canvas: HTMLCanvasElement) => {
 
     ctx.restore();
   }
-
-  // Handle window resize
-  window.addEventListener('resize', () => {
-    updateCanvasDimensions();
-  });
-
   requestAnimationFrame(render);
 };

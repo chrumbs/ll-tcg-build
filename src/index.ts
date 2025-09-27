@@ -1,28 +1,16 @@
 import { dateFormatter, moneyFormatter, timeFormatter } from '$utils/formatters';
+import { pageTransition } from '$utils/pageTransition';
 import { renderAccordions } from '$utils/renderAccordions';
 import { setTextByAttr } from '$utils/setText';
 import { formatProductId, getProductsByIDs } from '$utils/shopify';
 
+import type { ProductInfo, VariantInfo } from './events/types';
 import { renderGlobe } from './home/renderGlobe';
-
-type VariantInfo = { id: string; qty: number; price: number; options: Record<string, string> };
-type ProductInfo = {
-  id: string;
-  handle: string;
-  title: string;
-  gameType: string;
-  start: Date | null;
-  durationMin: number | null;
-  format: string | null;
-  variants: VariantInfo[];
-  seatsLeft: number;
-  minPrice: number | null;
-  maxPrice: number | null;
-  currency: string;
-};
 
 window.Webflow ||= [];
 window.Webflow.push(async () => {
+  pageTransition();
+
   const globeCanvas = document.querySelector<HTMLCanvasElement>('[data-role="globe-canvas"]');
   if (globeCanvas) renderGlobe(globeCanvas);
 
@@ -34,20 +22,19 @@ window.Webflow.push(async () => {
   }
 
   const productCards = Array.from(document.querySelectorAll('[data-product-id]'));
-
   if (!productCards || productCards.length === 0) return;
-
   const productIds = [
     ...new Set(productCards.map((card) => card.getAttribute('data-product-id')).filter(Boolean)),
   ];
-
   const data = await getProductsByIDs(productIds);
-
   const productMap = new Map();
-
   const productsArray = Array.isArray(data) ? data : [];
-
+  console.log('Fetched products:', productsArray);
   productsArray.forEach((p) => {
+    if (!p) {
+      console.error('Invalid product data:', p);
+      return;
+    }
     const variants: VariantInfo[] = (p.variants?.edges || []).map((e) => {
       const n = e.node;
       const options = Object.fromEntries((n.selectedOptions || []).map((o) => [o.name, o.value]));
@@ -86,14 +73,12 @@ window.Webflow.push(async () => {
 
   productCards.forEach((card: Element) => {
     const productId = card.getAttribute('data-product-id');
-
     if (!productId) {
       console.error(`Product ID not found for card: ${card}`);
       return;
     }
 
     const productData = productMap.get(formatProductId(productId)) as ProductInfo | undefined;
-
     if (!productData) {
       console.error(`Product not found: ${productId}`);
       return;
@@ -122,15 +107,12 @@ window.Webflow.push(async () => {
       setTextByAttr(card, 'date', dateFormatter(productData.start));
       setTextByAttr(card, 'time', timeFormatter(productData.start));
     }
-
     // Check if event is in the past
     const now = new Date();
     const isEventPast = productData.start ? productData.start < now : false;
     const hasSeatsAvailable = productData.seatsLeft > 0;
-
     // Event is clickable only if it has seats AND hasn't started yet
     const clickable = hasSeatsAvailable && !isEventPast;
-
     // Update seats text based on availability and timing
     let seatsText = '';
     if (isEventPast) {
@@ -138,10 +120,9 @@ window.Webflow.push(async () => {
     } else if (!hasSeatsAvailable) {
       seatsText = 'Sold Out';
     } else {
-      seatsText = `${productData.seatsLeft} Seats Open`;
+      seatsText = `${productData.seatsLeft} Seat${productData.seatsLeft === 1 ? '' : 's'} Open`;
     }
     setTextByAttr(card, 'seats', seatsText);
-
     // Toggle clickable class for styling (e.g., cursor, hover)
     (card as HTMLElement).classList.toggle('active', clickable);
 
@@ -163,17 +144,14 @@ window.Webflow.push(async () => {
         overlayLink.setAttribute('aria-label', productData.title || 'View event');
       }
     }
-
     // Inactive state (styling + semantics) - applies to both sold out AND past events
     if (!clickable) {
       (card as HTMLElement).classList.add('inactive');
       (card as HTMLElement).setAttribute('aria-disabled', 'true');
-
       // Add specific class for past events (for different styling if needed)
       if (isEventPast) {
         (card as HTMLElement).classList.add('past-event');
       }
-
       // Add specific class for sold out events (for different styling if needed)
       if (!hasSeatsAvailable && !isEventPast) {
         (card as HTMLElement).classList.add('sold-out');

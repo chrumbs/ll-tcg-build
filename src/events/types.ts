@@ -1,3 +1,25 @@
+export type VariantInfo = {
+  id: string;
+  qty: number;
+  price: number;
+  options: Record<string, string>;
+};
+
+export type ProductInfo = {
+  id: string;
+  handle: string;
+  title: string;
+  gameType: string;
+  start: Date | null;
+  durationMin: number | null;
+  format: string | null;
+  variants: VariantInfo[];
+  seatsLeft: number;
+  minPrice: number | null;
+  maxPrice: number | null;
+  currency: string;
+};
+
 export type VariantNode = {
   title: string;
   id: string;
@@ -14,7 +36,6 @@ export type ProductNode = {
   startTime?: { value?: string } | null;
   duration?: { value?: string } | null;
   format?: { value?: string } | null;
-  bandai?: boolean | null;
   complementaryProducts?: {
     references?: {
       edges?: {
@@ -51,8 +72,14 @@ export type CartItem = {
 export type FormState = {
   participant: string;
   requirePlayerName: boolean;
-  requirePokemonId: boolean;
+  // Game-specific account requirements
+  requireMtgAccount: boolean;
   requireTcgAccount: boolean;
+  requireTcgUsername: boolean;
+  requireRphAccount: boolean;
+  requireRphUsername: boolean;
+  requirePokemonAccount: boolean;
+  requirePokemonId: boolean;
 };
 
 export type ValidationResult = {

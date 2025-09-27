@@ -147,7 +147,6 @@ export async function getEventByID(id: string) {
           startTime: metafield(namespace:"custom", key:"start_time") { value }
           duration:  metafield(namespace:"custom", key:"duration") { value }
           format:    metafield(namespace:"custom", key:"format") { value }
-          bandai:    metafield(namespace:"custom", key:"bandai_tcg") { value }
           complementaryProducts: metafield(namespace:"shopify--discovery--product_recommendation", key:"complementary_products") {
             references(first: 20) {
               edges { node { ... on Product { 
@@ -204,7 +203,6 @@ export async function getEventByHandle(handle: string) {
           startTime: metafield(namespace:"custom", key:"start_time") { value }
           duration:  metafield(namespace:"custom", key:"duration") { value }
           format:    metafield(namespace:"custom", key:"format") { value }
-          bandai:    metafield(namespace:"custom", key:"bandai_tcg") { value }
           complementaryProducts: metafield(namespace:"shopify--discovery--product_recommendation", key:"complementary_products") {
             references(first: 20) {
               edges { node { ... on Product { 

@@ -1,5 +1,6 @@
 import { showError } from '$utils/errorHandler';
-import { dateFormatter, moneyFormatter, timeFormatter } from '$utils/formatters';
+import { dateFormatter, timeFormatter } from '$utils/formatters';
+import { pageTransition } from '$utils/pageTransition';
 import { renderAccordions } from '$utils/renderAccordions';
 import { setTextByAttr } from '$utils/setText';
 import { getEventByHandle, getEventByID } from '$utils/shopify';
@@ -9,11 +10,13 @@ import { CartManager } from './cart/cartManager';
 import { FormManager } from './form/formManager';
 import { FormSubmission } from './form/formSubmission';
 import { TicketManager } from './tickets/ticketManager';
-import type { ProductNode, VariantNode } from './types';
+import type { ProductNode } from './types';
 import { UpsellManager } from './upsells/upsellManager';
 
 window.Webflow ||= [];
 window.Webflow.push(async () => {
+  pageTransition();
+
   const accordions = Array.from(document.querySelectorAll('[ll-selector="accordion"]'));
   if (accordions.length > 0) {
     renderAccordions(accordions);
@@ -49,21 +52,33 @@ window.Webflow.push(async () => {
     }
   }
 
-  // Final check - no product found
   if (!product) {
+    eventNotFound();
     console.error('[events] No product found for handle:', handle, 'or ID:', cmsID);
-
-    // Hide all event-related elements
-    document.querySelectorAll('[data-role]').forEach((el) => {
-      el.classList.add('hide');
-      el.setAttribute('aria-hidden', 'true');
-    });
-    document.querySelectorAll('[data-field]').forEach((el) => {
-      el.classList.add('hide');
-      el.setAttribute('aria-hidden', 'true');
-    });
-
     showError('Event not found.');
+    return;
+  }
+
+  console.log('[events] Loaded product:', product);
+
+  const start = product.startTime?.value ? new Date(product.startTime.value) : null;
+  const now = new Date();
+  const isEventPast = start ? start < now : false;
+  if (isEventPast) {
+    setProductInfo(product);
+    eventPassed();
+    return;
+  }
+
+  const variants = product.variants?.edges?.map((e) => e.node) || [];
+  const totalSeatsAvailable = variants.reduce(
+    (sum, variant) => sum + (variant.quantityAvailable || 0),
+    0
+  );
+
+  if (totalSeatsAvailable <= 0) {
+    setProductInfo(product);
+    eventSoldOut();
     return;
   }
 
@@ -94,22 +109,12 @@ window.Webflow.push(async () => {
   formSubmission.setupFormHandler();
 });
 
-function setProductInfo(product: ProductNode): void {
-  const variants: VariantNode[] = (product.variants?.edges || []).map((e) => e.node);
-  const seatsLeft = variants.reduce((s, v) => s + (v.quantityAvailable || 0), 0);
-  const prices = variants
-    .map((v) => Number(v.price?.amount || '0'))
-    .filter((n) => Number.isFinite(n));
-  const minPrice = prices.length ? Math.min(...prices) : null;
-  const maxPrice = prices.length ? Math.max(...prices) : null;
-  const currency = variants[0]?.price?.currencyCode || 'USD';
-
+function setProductInfo(product: ProductNode) {
   const start = product.startTime?.value ? new Date(product.startTime.value) : null;
   if (start) {
     setTextByAttr(document, 'date', dateFormatter(start));
     setTextByAttr(document, 'time', timeFormatter(start));
   }
-
   setTextByAttr(document, 'gameType', product.gameType?.value || '');
   setTextByAttr(document, 'format', product.format?.value || '');
   setTextByAttr(
@@ -117,17 +122,70 @@ function setProductInfo(product: ProductNode): void {
     'duration',
     product.duration?.value ? `${Number(product.duration.value)} MINS` : ''
   );
-  setTextByAttr(document, 'seats', seatsLeft > 0 ? `${seatsLeft} Seats Open` : 'Sold Out');
+}
 
-  if (minPrice != null) {
-    setTextByAttr(
-      document,
-      'priceRange',
-      maxPrice != null && maxPrice !== minPrice
-        ? `${moneyFormatter(minPrice, currency)} - ${moneyFormatter(maxPrice, currency)}`
-        : minPrice === 0
-          ? 'Free'
-          : moneyFormatter(minPrice, currency)
-    );
+function eventPassed() {
+  const submitBtn = document.querySelector<HTMLButtonElement>('[data-role="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+  }
+  updateLayout();
+  setTextByAttr(document, 'seats', 'Event Completed');
+}
+
+function eventNotFound() {
+  const submitBtn = document.querySelector<HTMLButtonElement>('[data-role="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+  }
+  const eventContent = document.querySelector<HTMLElement>('.event_content_wrapper')?.childNodes;
+  eventContent?.forEach((node, i) => {
+    if (i > 3 && node instanceof HTMLElement) {
+      node.classList.add('hide');
+      node.setAttribute('aria-hidden', 'true');
+    }
+  });
+  const cartEl = document.querySelector<HTMLElement>('[data-role="cart"]');
+  if (cartEl) {
+    cartEl.classList.add('hide');
+    cartEl.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function eventSoldOut() {
+  const submitBtn = document.querySelector<HTMLButtonElement>('[data-role="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.classList.add('disabled');
+    submitBtn.textContent = 'Sold Out';
+  }
+  const contentEl = document.querySelector('.event_content_passed');
+  if (contentEl) {
+    contentEl.classList.remove('w-condition-invisible');
+    const message = contentEl.querySelector('.heading-style-h4');
+    if (message) {
+      message.textContent = 'This event is sold out';
+    }
+  }
+  updateLayout();
+  setTextByAttr(document, 'seats', 'Sold Out');
+}
+
+function updateLayout() {
+  const formEl = document.querySelector('.event_content_form');
+  if (formEl) {
+    formEl.classList.add('hide');
+    formEl.setAttribute('aria-hidden', 'true');
+  }
+  const ticketsEl = document.querySelectorAll('[data-role="ticket"]');
+  if (ticketsEl) {
+    ticketsEl.forEach((ticketEl) => {
+      ticketEl.classList.add('sold-out');
+    });
+  }
+  const upsellsEl = document.querySelector('.event_content_upsell');
+  if (upsellsEl) {
+    upsellsEl.classList.add('hide');
+    upsellsEl.setAttribute('aria-hidden', 'true');
   }
 }

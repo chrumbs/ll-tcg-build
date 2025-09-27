@@ -76,6 +76,8 @@ export class FormSubmission {
     return this.formManager.validate();
   }
 
+  // In the createEventCart method:
+
   private async createEventCart() {
     const formState = this.formManager.getState();
 
@@ -83,16 +85,23 @@ export class FormSubmission {
     const firstName = this.getFormValue('field-first-name');
     const lastName = this.getFormValue('field-last-name');
     const playerName = `${firstName} ${lastName}`.trim();
-    const pokemonId = formState.requirePokemonId ? this.getFormValue('field-pokemon-id') : '';
 
-    // Get TCG account status
-    let tcgAccountStatus = '';
-    if (formState.requireTcgAccount) {
-      const tcgTrue = document.getElementById('true') as HTMLInputElement;
-      const tcgFalse = document.getElementById('false') as HTMLInputElement;
-      if (tcgTrue?.checked) tcgAccountStatus = 'Yes';
-      if (tcgFalse?.checked) tcgAccountStatus = 'No';
-    }
+    // Get game-specific account information
+    const mtgAccountStatus = formState.requireMtgAccount ? this.getRadioValue('mtg-account') : '';
+
+    const tcgAccountStatus = formState.requireTcgAccount ? this.getRadioValue('tcg-account') : '';
+
+    const tcgUsername = formState.requireTcgUsername ? this.getFormValue('field-tcg-username') : '';
+
+    const rphAccountStatus = formState.requireRphAccount ? this.getRadioValue('rph-account') : '';
+
+    const rphUsername = formState.requireRphUsername ? this.getFormValue('field-rph-username') : '';
+
+    const pokemonAccountStatus = formState.requirePokemonAccount
+      ? this.getRadioValue('pokemon-id')
+      : '';
+
+    const pokemonId = formState.requirePokemonId ? this.getFormValue('field-pokemon-id') : '';
 
     // Build main event line item
     const lines = [
@@ -110,15 +119,38 @@ export class FormSubmission {
       },
     ];
 
-    // Add conditional attributes for main event
+    // Add conditional attributes for player name
     if (formState.participant === 'other' && firstName && lastName) {
       lines[0].attributes.push({ key: 'Player Name', value: playerName });
     }
-    if (pokemonId) {
-      lines[0].attributes.push({ key: 'Pokémon ID', value: pokemonId });
+
+    // Add game-specific attributes
+    if (mtgAccountStatus) {
+      lines[0].attributes.push({ key: 'MTG Companion App', value: mtgAccountStatus });
     }
+
     if (tcgAccountStatus) {
       lines[0].attributes.push({ key: 'TCG Plus Account', value: tcgAccountStatus });
+    }
+
+    if (tcgUsername) {
+      lines[0].attributes.push({ key: 'TCG Plus Username', value: tcgUsername });
+    }
+
+    if (rphAccountStatus) {
+      lines[0].attributes.push({ key: 'Ravensburger Play Hub Account', value: rphAccountStatus });
+    }
+
+    if (rphUsername) {
+      lines[0].attributes.push({ key: 'Ravensburger Play Hub Username', value: rphUsername });
+    }
+
+    if (pokemonAccountStatus) {
+      lines[0].attributes.push({ key: 'Pokémon ID Account', value: pokemonAccountStatus });
+    }
+
+    if (pokemonId) {
+      lines[0].attributes.push({ key: 'Pokémon ID', value: pokemonId });
     }
 
     // Add upsell items from cart
@@ -180,5 +212,17 @@ export class FormSubmission {
     return (
       document.querySelector<HTMLInputElement>(`[data-role="${selector}"]`)?.value || ''
     ).trim();
+  }
+
+  private getRadioValue(name: string): string {
+    const trueRadio = document.querySelector<HTMLInputElement>(
+      `input[name="${name}"][id="${name}-true"]`
+    );
+    const falseRadio = document.querySelector<HTMLInputElement>(
+      `input[name="${name}"][id="${name}-false"]`
+    );
+    if (trueRadio?.checked) return 'Yes';
+    if (falseRadio?.checked) return 'No';
+    return '';
   }
 }

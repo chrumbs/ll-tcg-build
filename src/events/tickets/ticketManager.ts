@@ -121,7 +121,8 @@ export class TicketManager {
     const priceEl = ticketEl.querySelector('[data-field="price"]');
 
     if (titleEl) titleEl.textContent = title;
-    if (seatsEl) seatsEl.textContent = qty > 0 ? `${qty} seats left` : 'Sold out';
+    if (seatsEl)
+      seatsEl.textContent = qty > 0 ? `${qty} seat${qty === 1 ? '' : 's'} left` : 'Sold out';
     if (priceEl) priceEl.textContent = price === 0 ? 'Free' : moneyFormatter(price, this.currency);
   }
 
