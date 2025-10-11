@@ -20,11 +20,9 @@ export function formatVariantId(id: string | null): string {
   return `gid://shopify/ProductVariant/${id}`;
 }
 
-const DOMAIN = 'll-theme.myshopify.com';
-const TOKEN = 'b2506cf21eef17d954028e02a4f3eb46';
+const DOMAIN = 'shop.lostlevelsarcade.com';
+const TOKEN = '51611eac4adbd8d8496b9a639e0c3ef2';
 const API_VER = '2025-07';
-
-//const VARIANT_ID = 'gid://shopify/ProductVariant/49903425388848';
 
 const client = createStorefrontApiClient({
   storeDomain: DOMAIN,
