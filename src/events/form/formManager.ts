@@ -91,6 +91,48 @@ export class FormManager {
   private updateFieldVisibility(): void {
     this.updatePlayerNameFields();
     this.updateGameSpecificFields();
+    this.recheckAllAccountRadios();
+  }
+
+  private recheckAllAccountRadios(): void {
+    // Check all account radio buttons and update fields accordingly
+    const accountTypes = [
+      { radio: 'mtg-account', field: 'mtg-username' },
+      { radio: 'tcg-account', field: 'tcg-username' },
+      { radio: 'rph-account', field: 'rph-username' },
+      { radio: 'pokemon-account', field: 'pokemon-id' },
+    ];
+
+    accountTypes.forEach(({ radio, field }) => {
+      // Only check if this account type is currently required
+      console.log(
+        `Checking ${radio}: ${this.state[`require${this.capitalizeFirst(radio.replace('-', ''))}` as keyof FormState]}`
+      );
+      if (this.state[`require${this.capitalizeFirst(radio.replace('-', ''))}` as keyof FormState]) {
+        const trueRadio = document.querySelector<HTMLInputElement>(
+          `input[name="${radio}"][id="${radio}-true"]`
+        );
+
+        // If "Yes" is already selected, show the username field
+        if (trueRadio?.checked) {
+          const fieldset = document.querySelector<HTMLElement>(`[data-role="${field}"]`);
+          if (fieldset) {
+            fieldset.classList.remove('hide');
+
+            // Make inputs required
+            const inputs = fieldset.querySelectorAll('input');
+            inputs.forEach((input) => {
+              input.required = true;
+            });
+          }
+        }
+      }
+    });
+  }
+
+  // Helper method to capitalize first letter
+  private capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   private updatePlayerNameFields(): void {
@@ -176,6 +218,21 @@ export class FormManager {
       tcgAccountSection.classList.remove('hide');
       this.state.requireTcgAccount = true;
       this.state.requireTcgUsername = true;
+
+      const trueRadio = document.querySelector<HTMLInputElement>(
+        'input[name="tcg-account"][id="tcg-account-true"]'
+      );
+      if (trueRadio?.checked) {
+        // Show username field if YES is already selected
+        const usernameSection = document.querySelector<HTMLElement>('[data-role="tcg-username"]');
+        if (usernameSection) {
+          usernameSection.classList.remove('hide');
+          const inputs = usernameSection.querySelectorAll('input');
+          inputs.forEach((input) => {
+            input.required = true;
+          });
+        }
+      }
     }
   }
 
@@ -187,6 +244,21 @@ export class FormManager {
       rphAccountSection.classList.remove('hide');
       this.state.requireRphAccount = true;
       this.state.requireRphUsername = true;
+
+      const trueRadio = document.querySelector<HTMLInputElement>(
+        'input[name="rph-account"][id="rph-account-true"]'
+      );
+      if (trueRadio?.checked) {
+        // Show username field if YES is already selected
+        const usernameSection = document.querySelector<HTMLElement>('[data-role="rph-username"]');
+        if (usernameSection) {
+          usernameSection.classList.remove('hide');
+          const inputs = usernameSection.querySelectorAll('input');
+          inputs.forEach((input) => {
+            input.required = true;
+          });
+        }
+      }
     }
   }
 
@@ -199,6 +271,21 @@ export class FormManager {
       pokemonAccountSection.classList.remove('hide');
       this.state.requirePokemonAccount = true;
       this.state.requirePokemonId = true;
+
+      const trueRadio = document.querySelector<HTMLInputElement>(
+        'input[name="pokemon-account"][id="pokemon-account-true"]'
+      );
+      if (trueRadio?.checked) {
+        // Show ID field if YES is already selected
+        const idSection = document.querySelector<HTMLElement>('[data-role="pokemon-id"]');
+        if (idSection) {
+          idSection.classList.remove('hide');
+          const inputs = idSection.querySelectorAll('input');
+          inputs.forEach((input) => {
+            input.required = true;
+          });
+        }
+      }
     }
   }
 
