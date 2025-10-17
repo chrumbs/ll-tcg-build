@@ -1,12 +1,13 @@
 export function pageTransition() {
+  console.log('Initializing page transitions');
   // Configuration
-  const introDurationMS = 1300; // Initial page load fade duration
-  const exitDurationMS = 800; // Exit animation duration
-  const loaderSelector = '[ll-selector="loader"]';
+  const introDurationMS = 1300;
+  const exitDurationMS = 800;
   const excludedSelector = '.no-transition';
 
   // Get loader element
-  const loader = document.querySelector<HTMLElement>(loaderSelector);
+  const loader = document.querySelector<HTMLElement>('[ll-selector="loader"]');
+  console.log('Loader element:', loader);
   if (!loader) return;
 
   loader.style.opacity = '1';
@@ -15,6 +16,7 @@ export function pageTransition() {
 
   // Function to hide loader
   const hideLoader = () => {
+    console.log('Hiding loader');
     if (!loader) return;
     loader.style.opacity = '0';
     setTimeout(() => {
@@ -26,19 +28,17 @@ export function pageTransition() {
   const showLoader = () => {
     if (!loader) return;
     loader.style.display = 'flex';
-    // Force reflow to ensure the display change is processed before opacity
     void loader.offsetWidth;
     loader.style.opacity = '1';
   };
 
-  // Initial page load animation
-  window.addEventListener('load', () => {
-    document.body.classList.add('no-scroll-transition');
-    setTimeout(() => {
-      hideLoader();
-      document.body.classList.remove('no-scroll-transition');
-    }, 500); // Short delay to ensure content is ready
-  });
+  // EXECUTE DIRECTLY instead of using load event listener
+  console.log('Executing intro animation directly');
+  document.body.classList.add('no-scroll-transition');
+  setTimeout(() => {
+    hideLoader();
+    document.body.classList.remove('no-scroll-transition');
+  }, 500);
 
   // Handle link clicks
   document.addEventListener('click', (e) => {
@@ -48,10 +48,14 @@ export function pageTransition() {
 
     if (!anchor) return;
 
+    const href = anchor.getAttribute('href');
+
     // Skip transitions for specific links
     if (
       anchor.hostname !== window.location.hostname || // External link
-      anchor.getAttribute('href')?.includes('#') || // Hash link
+      !href || // No href attribute
+      href.includes('#') || // Any hash link (like #visit)
+      (href.endsWith('/') && href.indexOf('#') !== -1) || // Hash with trailing slash (like /#visit)
       anchor.matches(excludedSelector) || // Excluded class
       anchor.getAttribute('target') === '_blank' || // New tab
       anchor.getAttribute('download') !== null // Download link
@@ -59,7 +63,6 @@ export function pageTransition() {
       return;
     }
 
-    // Prevent default navigation
     e.preventDefault();
 
     // Get destination URL
@@ -80,6 +83,7 @@ export function pageTransition() {
 
   // Handle back/forward navigation
   window.addEventListener('pageshow', (event) => {
+    console.log('Page show');
     if (event.persisted) {
       // Page is coming from browser cache (back/forward)
       hideLoader();
