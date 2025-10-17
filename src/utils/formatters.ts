@@ -1,4 +1,4 @@
-const TZ = 'America/New_York';
+const TZ = 'America/Los_Angeles';
 
 const dateFmt = new Intl.DateTimeFormat('en-US', {
   weekday: 'short',

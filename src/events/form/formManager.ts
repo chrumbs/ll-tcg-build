@@ -104,10 +104,9 @@ export class FormManager {
     ];
 
     accountTypes.forEach(({ radio, field }) => {
-      // Only check if this account type is currently required
-      console.log(
-        `Checking ${radio}: ${this.state[`require${this.capitalizeFirst(radio.replace('-', ''))}` as keyof FormState]}`
-      );
+      // console.log(
+      //   `Checking ${radio}: ${this.state[`require${this.capitalizeFirst(radio.replace('-', ''))}` as keyof FormState]}`
+      // );
       if (this.state[`require${this.capitalizeFirst(radio.replace('-', ''))}` as keyof FormState]) {
         const trueRadio = document.querySelector<HTMLInputElement>(
           `input[name="${radio}"][id="${radio}-true"]`
@@ -174,6 +173,10 @@ export class FormManager {
       this.showRphFields();
     } else if (gameType === 'pokemon') {
       this.showPokemonFields();
+    } else {
+      // For game types without account requirements - do nothing
+      // This ensures no account fields are shown but participant selection still works
+      console.log(`Game type '${gameType}' doesn't require specific account fields`);
     }
   }
 
