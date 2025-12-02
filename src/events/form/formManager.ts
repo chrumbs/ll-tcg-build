@@ -288,8 +288,8 @@ export class FormManager {
       this.showError(error);
       return { valid: false, error };
     }
-    // Validate minimum age (e.g., must be at least 16 years old)
-    const minAge = 16;
+    // Validate minimum age (e.g., must be at least 12 years old)
+    const minAge = 12;
     const minBirthDate = new Date();
     minBirthDate.setFullYear(today.getFullYear() - minAge);
     if (bdayDate > minBirthDate) {
