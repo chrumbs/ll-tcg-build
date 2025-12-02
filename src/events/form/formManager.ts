@@ -4,9 +4,7 @@ import type { FormState, ProductNode, ValidationResult } from '../types';
 
 export class FormManager {
   private state: FormState = {
-    participant: 'self',
     requirePlayerName: false,
-
     // Initialize all game-specific fields to false
     requireMtgAccount: false,
     requireTcgAccount: false,
@@ -27,30 +25,6 @@ export class FormManager {
   }
 
   private setupListeners(): void {
-    const selfRadio = document.getElementById('self') as HTMLInputElement;
-    const otherRadio = document.getElementById('other') as HTMLInputElement;
-
-    if (selfRadio && otherRadio) {
-      selfRadio.addEventListener('change', () => {
-        if (selfRadio.checked) {
-          this.state.participant = 'self';
-          this.updateFieldVisibility();
-        }
-      });
-
-      otherRadio.addEventListener('change', () => {
-        if (otherRadio.checked) {
-          this.state.participant = 'other';
-          this.updateFieldVisibility();
-        }
-      });
-
-      // Set default
-      if (!selfRadio.checked && !otherRadio.checked) {
-        selfRadio.checked = true;
-        this.state.participant = 'self';
-      }
-    }
     this.setupAccountRadioListeners('mtg-account', 'mtg-username');
     this.setupAccountRadioListeners('tcg-account', 'tcg-username');
     this.setupAccountRadioListeners('rph-account', 'rph-username');
@@ -89,7 +63,7 @@ export class FormManager {
   }
 
   private updateFieldVisibility(): void {
-    this.updatePlayerNameFields();
+    // this.updatePlayerNameFields();
     this.updateGameSpecificFields();
     this.recheckAllAccountRadios();
   }
@@ -134,20 +108,6 @@ export class FormManager {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  private updatePlayerNameFields(): void {
-    const section = document.querySelector<HTMLElement>('[data-role="player-name"]');
-    if (!section) return;
-
-    const isOther = this.state.participant === 'other';
-    section.classList.toggle('hide', !isOther);
-    this.state.requirePlayerName = isOther;
-
-    const inputs = section.querySelectorAll('input');
-    inputs.forEach((input) => {
-      input.required = isOther;
-    });
-  }
-
   private updateGameSpecificFields(): void {
     // Get game type from product (lowercase for case-insensitive comparison)
     const gameType = (this.product.gameType?.value || '').toLowerCase();
@@ -176,7 +136,7 @@ export class FormManager {
     } else {
       // For game types without account requirements - do nothing
       // This ensures no account fields are shown but participant selection still works
-      console.log(`Game type '${gameType}' doesn't require specific account fields`);
+      console.info(`Game type '${gameType}' doesn't require specific account fields`);
     }
   }
 
@@ -293,21 +253,49 @@ export class FormManager {
   }
 
   validate(): ValidationResult {
-    // Validate player name if required
-    if (this.state.requirePlayerName) {
-      const firstName = this.getFormValue('field-first-name');
-      const lastName = this.getFormValue('field-last-name');
-
-      if (!firstName) {
-        const error = "Please enter the player's first name.";
-        this.showError(error);
-        return { valid: false, error };
-      }
-      if (!lastName) {
-        const error = "Please enter the player's last name.";
-        this.showError(error);
-        return { valid: false, error };
-      }
+    const firstName = this.getFormValue('field-first-name');
+    const lastName = this.getFormValue('field-last-name');
+    // Validate player name
+    if (!firstName) {
+      const error = "Please enter the player's first name.";
+      this.showError(error);
+      return { valid: false, error };
+    }
+    if (!lastName) {
+      const error = "Please enter the player's last name.";
+      this.showError(error);
+      return { valid: false, error };
+    }
+    // Validate phone number
+    const phone = this.getFormValue('field-phone');
+    if (!phone) {
+      const error = "Please enter the player's phone number.";
+      this.showError(error);
+      return { valid: false, error };
+    }
+    // Validate date of birth
+    const bday = this.getFormValue('field-bday');
+    if (!bday) {
+      const error = "Please enter the player's date of birth.";
+      this.showError(error);
+      return { valid: false, error };
+    }
+    // Validate date is in the past
+    const bdayDate = new Date(bday);
+    const today = new Date();
+    if (bdayDate >= today) {
+      const error = 'Date of birth must be in the past.';
+      this.showError(error);
+      return { valid: false, error };
+    }
+    // Validate minimum age (e.g., must be at least 16 years old)
+    const minAge = 16;
+    const minBirthDate = new Date();
+    minBirthDate.setFullYear(today.getFullYear() - minAge);
+    if (bdayDate > minBirthDate) {
+      const error = `Player must be at least ${minAge} years old.`;
+      this.showError(error);
+      return { valid: false, error };
     }
 
     // Validate MTG Account
@@ -343,6 +331,14 @@ export class FormManager {
         return { valid: false, error };
       }
     }
+    if (this.state.requireTcgUsername) {
+      const tcgUsername = this.getFormValue('field-tcg-username');
+      if (!tcgUsername) {
+        const error = 'Please enter your TCG Plus username.';
+        this.showError(error);
+        return { valid: false, error };
+      }
+    }
 
     // Validate RPH Account
     if (this.state.requireRphAccount) {
@@ -360,6 +356,14 @@ export class FormManager {
         return { valid: false, error };
       }
     }
+    if (this.state.requireRphUsername) {
+      const rphUsername = this.getFormValue('field-rph-username');
+      if (!rphUsername) {
+        const error = 'Please enter your Ravensburger Play Hub username.';
+        this.showError(error);
+        return { valid: false, error };
+      }
+    }
 
     // Validate Pokemon Account
     if (this.state.requirePokemonAccount) {
@@ -373,6 +377,14 @@ export class FormManager {
       }
       if (hasPokemonAccount.id === 'pokemon-account-false') {
         const error = 'You need a Pokémon ID to participate in this event.';
+        this.showError(error);
+        return { valid: false, error };
+      }
+    }
+    if (this.state.requirePokemonId) {
+      const pokemonId = this.getFormValue('field-pokemon-id');
+      if (!pokemonId) {
+        const error = 'Please enter your Pokémon ID.';
         this.showError(error);
         return { valid: false, error };
       }

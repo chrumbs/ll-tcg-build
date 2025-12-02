@@ -18,7 +18,7 @@ window.Webflow.push(async () => {
   if (accordions.length > 0) {
     renderAccordions(accordions);
   } else {
-    console.log('No accordion elements found.');
+    console.info('No accordion elements found.');
   }
 
   const productCards = Array.from(document.querySelectorAll('[data-product-id]'));
@@ -29,7 +29,7 @@ window.Webflow.push(async () => {
   const data = await getProductsByIDs(productIds);
   const productMap = new Map();
   const productsArray = Array.isArray(data) ? data : [];
-  console.log('Fetched products:', productsArray);
+
   productsArray.forEach((p) => {
     if (!p) {
       console.error('Invalid product data:', p);
@@ -59,6 +59,7 @@ window.Webflow.push(async () => {
       start: p.startTime?.value ? new Date(p.startTime.value) : null,
       durationMin: p.duration?.value ? Number(p.duration.value) : null,
       format: p.format?.value || null,
+      totalCap: p.totalCap?.value ? Number(p.totalCap.value) : null,
       variants,
       seatsLeft,
       minPrice,
@@ -120,7 +121,7 @@ window.Webflow.push(async () => {
     } else if (!hasSeatsAvailable) {
       seatsText = 'Sold Out';
     } else {
-      seatsText = `${productData.seatsLeft} Seat${productData.seatsLeft === 1 ? '' : 's'} Open`;
+      seatsText = `${productData.seatsLeft} ${productData.totalCap && productData.totalCap > 0 ? `/ ${productData.totalCap} Open` : 'Open'}`;
     }
     setTextByAttr(card, 'seats', seatsText);
     // Toggle clickable class for styling (e.g., cursor, hover)

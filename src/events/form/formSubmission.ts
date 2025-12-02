@@ -85,22 +85,18 @@ export class FormSubmission {
     const firstName = this.getFormValue('field-first-name');
     const lastName = this.getFormValue('field-last-name');
     const playerName = `${firstName} ${lastName}`.trim();
+    const phone = this.getFormValue('field-phone');
+    const bday = this.getFormValue('field-bday');
 
     // Get game-specific account information
     const mtgAccountStatus = formState.requireMtgAccount ? this.getRadioValue('mtg-account') : '';
-
     const tcgAccountStatus = formState.requireTcgAccount ? this.getRadioValue('tcg-account') : '';
-
     const tcgUsername = formState.requireTcgUsername ? this.getFormValue('field-tcg-username') : '';
-
     const rphAccountStatus = formState.requireRphAccount ? this.getRadioValue('rph-account') : '';
-
     const rphUsername = formState.requireRphUsername ? this.getFormValue('field-rph-username') : '';
-
     const pokemonAccountStatus = formState.requirePokemonAccount
       ? this.getRadioValue('pokemon-id')
       : '';
-
     const pokemonId = formState.requirePokemonId ? this.getFormValue('field-pokemon-id') : '';
 
     // Build main event line item
@@ -111,18 +107,12 @@ export class FormSubmission {
         attributes: [
           { key: 'Game', value: this.product.gameType?.value || '' },
           { key: 'Format', value: this.product.format?.value || '' },
-          {
-            key: 'Participant',
-            value: formState.participant.charAt(0).toUpperCase() + formState.participant.slice(1),
-          },
+          { key: 'Player Name', value: playerName },
+          { key: 'Phone Number', value: phone },
+          { key: 'Date of Birth', value: bday },
         ],
       },
     ];
-
-    // Add conditional attributes for player name
-    if (formState.participant === 'other' && firstName && lastName) {
-      lines[0].attributes.push({ key: 'Player Name', value: playerName });
-    }
 
     // Add game-specific attributes
     if (mtgAccountStatus) {

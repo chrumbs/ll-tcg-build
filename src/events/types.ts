@@ -13,6 +13,7 @@ export type ProductInfo = {
   start: Date | null;
   durationMin: number | null;
   format: string | null;
+  totalCap: number | null;
   variants: VariantInfo[];
   seatsLeft: number;
   minPrice: number | null;
@@ -36,6 +37,7 @@ export type ProductNode = {
   startTime?: { value?: string } | null;
   duration?: { value?: string } | null;
   format?: { value?: string } | null;
+  totalCap?: { value?: string } | null;
   complementaryProducts?: {
     references?: {
       edges?: {
@@ -70,7 +72,7 @@ export type CartItem = {
 };
 
 export type FormState = {
-  participant: string;
+  // participant: string;
   requirePlayerName: boolean;
   // Game-specific account requirements
   requireMtgAccount: boolean;

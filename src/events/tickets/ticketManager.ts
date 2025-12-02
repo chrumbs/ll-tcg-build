@@ -8,6 +8,7 @@ export class TicketManager {
   private chosenVariantId: string | null = null;
   private hasSelectedVariant = false;
   private currency: string;
+  private totalCap: number | null = null;
 
   constructor(
     private product: ProductNode,
@@ -15,6 +16,7 @@ export class TicketManager {
   ) {
     this.variants = (product.variants?.edges || []).map((e) => e.node);
     this.currency = this.variants[0]?.price?.currencyCode || 'USD';
+    this.totalCap = product.totalCap?.value ? Number(product.totalCap.value) : null;
   }
 
   async render(): Promise<void> {
@@ -122,7 +124,10 @@ export class TicketManager {
 
     if (titleEl) titleEl.textContent = title;
     if (seatsEl)
-      seatsEl.textContent = qty > 0 ? `${qty} seat${qty === 1 ? '' : 's'} left` : 'Sold out';
+      seatsEl.textContent =
+        qty > 0
+          ? `${qty} ${this.totalCap && this.totalCap > 0 ? `/ ${this.totalCap} Open` : 'Open'}`
+          : 'Sold out';
     if (priceEl) priceEl.textContent = price === 0 ? 'Free' : moneyFormatter(price, this.currency);
   }
 

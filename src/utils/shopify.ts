@@ -104,6 +104,7 @@ export async function getProductsByIDs(ids: (string | null)[]) {
               startTime: metafield(namespace:"custom", key:"start_time"){ value }
               duration:  metafield(namespace:"custom", key:"duration"){ value }
               format:    metafield(namespace:"custom", key:"format"){ value }
+              totalCap:  metafield(namespace:"custom", key:"total_cap"){ value }
               variants(first: 50) {
                 edges { node {
                   id
@@ -201,6 +202,7 @@ export async function getEventByHandle(handle: string) {
           startTime: metafield(namespace:"custom", key:"start_time") { value }
           duration:  metafield(namespace:"custom", key:"duration") { value }
           format:    metafield(namespace:"custom", key:"format") { value }
+          totalCap:  metafield(namespace:"custom", key:"total_cap") { value }
           complementaryProducts: metafield(namespace:"shopify--discovery--product_recommendation", key:"complementary_products") {
             references(first: 20) {
               edges { node { ... on Product { 

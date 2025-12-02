@@ -21,7 +21,7 @@ window.Webflow.push(async () => {
   if (accordions.length > 0) {
     renderAccordions(accordions);
   } else {
-    console.log('No accordion elements found.');
+    console.info('No accordion elements found.');
   }
 
   // Resolve product handle
@@ -33,19 +33,19 @@ window.Webflow.push(async () => {
   let product: ProductNode | null = await getEventByHandle(handle);
 
   if (handle) {
-    console.log('[events] Fetching by handle:', handle);
+    console.info('[events] Fetching by handle:', handle);
     product = await getEventByHandle(handle);
   }
 
   if (!product && cmsID) {
-    console.log('[events] Handle failed, trying CMS ID:', cmsID);
+    console.info('[events] Handle failed, trying CMS ID:', cmsID);
     try {
       product = await getEventByID(cmsID);
 
       if (product) {
-        console.log('[events] Successfully fetched by ID:', product.title);
+        console.info('[events] Successfully fetched by ID:', product.title);
       } else {
-        console.log('[events] No product found for ID:', cmsID);
+        console.info('[events] No product found for ID:', cmsID);
       }
     } catch (error) {
       console.error('[events] Failed to fetch by ID:', error);
@@ -59,7 +59,7 @@ window.Webflow.push(async () => {
     return;
   }
 
-  console.log('[events] Loaded product:', product);
+  console.info('[events] Loaded product:', product);
 
   const start = product.startTime?.value ? new Date(product.startTime.value) : null;
   const now = new Date();
