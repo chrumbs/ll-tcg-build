@@ -1,5 +1,4 @@
 export function pageTransition() {
-  console.log('Initializing page transitions');
   // Configuration
   const introDurationMS = 1300;
   const exitDurationMS = 800;
@@ -7,7 +6,7 @@ export function pageTransition() {
 
   // Get loader element
   const loader = document.querySelector<HTMLElement>('[ll-selector="loader"]');
-  console.log('Loader element:', loader);
+  //console.log('Loader element:', loader);
   if (!loader) return;
 
   loader.style.opacity = '1';
@@ -16,7 +15,7 @@ export function pageTransition() {
 
   // Function to hide loader
   const hideLoader = () => {
-    console.log('Hiding loader');
+    // console.log('Hiding loader');
     if (!loader) return;
     loader.style.opacity = '0';
     setTimeout(() => {
@@ -33,7 +32,7 @@ export function pageTransition() {
   };
 
   // EXECUTE DIRECTLY instead of using load event listener
-  console.log('Executing intro animation directly');
+  // console.log('Executing intro animation directly');
   document.body.classList.add('no-scroll-transition');
   setTimeout(() => {
     hideLoader();
@@ -83,7 +82,7 @@ export function pageTransition() {
 
   // Handle back/forward navigation
   window.addEventListener('pageshow', (event) => {
-    console.log('Page show');
+    // console.log('Page show');
     if (event.persisted) {
       // Page is coming from browser cache (back/forward)
       hideLoader();

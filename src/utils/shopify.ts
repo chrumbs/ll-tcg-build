@@ -146,6 +146,7 @@ export async function getEventByID(id: string) {
           startTime: metafield(namespace:"custom", key:"start_time") { value }
           duration:  metafield(namespace:"custom", key:"duration") { value }
           format:    metafield(namespace:"custom", key:"format") { value }
+          totalCap:  metafield(namespace:"custom", key:"total_cap") { value }
           complementaryProducts: metafield(namespace:"shopify--discovery--product_recommendation", key:"complementary_products") {
             references(first: 20) {
               edges { node { ... on Product { 
@@ -425,36 +426,3 @@ export async function addItemsToCart(
     throw error;
   }
 }
-
-// async function createCheckout(playerName: string, deckId: string) {
-//   const query = `
-//     mutation cartCreate($input: CartInput) {
-//       cartCreate(input: $input) {
-//         cart {
-//         	id
-//           checkoutUrl
-//         }
-//         userErrors { field message }
-//       }
-//     }`;
-
-//   const variables = {
-//     input: {
-//       lines: [{
-//         merchandiseId: VARIANT_ID,
-//         quantity: 1,
-//         attributes: [
-//           { key: "Player Name", value: playerName },
-//           { key: "Deck / Game ID", value: deckId }
-//         ]
-//       }]
-//     }
-//   };
-
-//   const request = await client.request(query, variables);
-//   console.log(request, '1');
-//   const { data, errors } = request;
-//   if (errors?.length) throw new Error(errors[0].message);
-//   console.log(data, errors);
-
-// }
