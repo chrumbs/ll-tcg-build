@@ -45,7 +45,7 @@ export class TicketManager {
 
     // Create tickets for each variant
     sortedVariants.forEach((variant) => {
-      console.info('Creating ticket for variant', variant);
+      // console.info('Creating ticket for variant', variant);
       this.createTicketElement(variant, ticketTemplate, ticketsContainer);
     });
 
@@ -85,7 +85,7 @@ export class TicketManager {
 
     // Handle sold out vs available tickets
     if (qty <= 0) {
-      console.info('Setting up sold out ticket for variant', variant);
+      // console.info('Setting up sold out ticket for variant', variant);
       this.setupSoldOutTicket(ticketEl);
     } else {
       this.setupAvailableTicket(ticketEl, variant, finalTitle);

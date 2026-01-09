@@ -59,7 +59,7 @@ window.Webflow.push(async () => {
     return;
   }
 
-  console.info('[events] Loaded product:', product);
+  // console.info('[events] Loaded product:', product);
 
   const start = product.startTime?.value ? new Date(product.startTime.value) : null;
   const now = new Date();
