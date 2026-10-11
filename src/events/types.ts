@@ -80,6 +80,8 @@ export type FormState = {
   requireTcgUsername: boolean;
   requireRphAccount: boolean;
   requireRphUsername: boolean;
+  requireRiftAccount: boolean;
+  requireRiftUsername: boolean;
   requirePokemonAccount: boolean;
   requirePokemonId: boolean;
 };

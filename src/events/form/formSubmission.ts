@@ -94,6 +94,12 @@ export class FormSubmission {
     const tcgUsername = formState.requireTcgUsername ? this.getFormValue('field-tcg-username') : '';
     const rphAccountStatus = formState.requireRphAccount ? this.getRadioValue('rph-account') : '';
     const rphUsername = formState.requireRphUsername ? this.getFormValue('field-rph-username') : '';
+    const riftAccountStatus = formState.requireRiftAccount
+      ? this.getRadioValue('rift-account')
+      : '';
+    const riftUsername = formState.requireRiftUsername
+      ? this.getFormValue('field-rift-username')
+      : '';
     const pokemonAccountStatus = formState.requirePokemonAccount
       ? this.getRadioValue('pokemon-id')
       : '';
@@ -133,6 +139,14 @@ export class FormSubmission {
 
     if (rphUsername) {
       lines[0].attributes.push({ key: 'Ravensburger Play Hub Username', value: rphUsername });
+    }
+
+    if (riftAccountStatus) {
+      lines[0].attributes.push({ key: 'Riftbound Account', value: riftAccountStatus });
+    }
+
+    if (riftUsername) {
+      lines[0].attributes.push({ key: 'Riftbound Username', value: riftUsername });
     }
 
     if (pokemonAccountStatus) {

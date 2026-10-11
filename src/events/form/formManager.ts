@@ -11,6 +11,8 @@ export class FormManager {
     requireTcgUsername: false,
     requireRphAccount: false,
     requireRphUsername: false,
+    requireRiftAccount: false,
+    requireRiftUsername: false,
     requirePokemonAccount: false,
     requirePokemonId: false,
   };
@@ -28,6 +30,7 @@ export class FormManager {
     this.setupAccountRadioListeners('mtg-account', 'mtg-username');
     this.setupAccountRadioListeners('tcg-account', 'tcg-username');
     this.setupAccountRadioListeners('rph-account', 'rph-username');
+    this.setupAccountRadioListeners('rift-account', 'rift-username');
     this.setupAccountRadioListeners('pokemon-account', 'pokemon-id');
   }
 
@@ -74,6 +77,7 @@ export class FormManager {
       { radio: 'mtg-account', field: 'mtg-username' },
       { radio: 'tcg-account', field: 'tcg-username' },
       { radio: 'rph-account', field: 'rph-username' },
+      { radio: 'rift-account', field: 'rift-username' },
       { radio: 'pokemon-account', field: 'pokemon-id' },
     ];
 
@@ -121,6 +125,8 @@ export class FormManager {
     this.state.requireTcgUsername = false;
     this.state.requireRphAccount = false;
     this.state.requireRphUsername = false;
+    this.state.requireRiftAccount = false;
+    this.state.requireRiftUsername = false;
     this.state.requirePokemonAccount = false;
     this.state.requirePokemonId = false;
 
@@ -131,6 +137,8 @@ export class FormManager {
       this.showTcgFields();
     } else if (gameType === 'lorcana') {
       this.showRphFields();
+    } else if (gameType === 'riftbound') {
+      this.showRiftFields();
     } else if (gameType === 'pokemon') {
       this.showPokemonFields();
     } else {
@@ -147,6 +155,8 @@ export class FormManager {
       'tcg-username',
       'rph-account',
       'rph-username',
+      'rift-account',
+      'rift-username',
       'pokemon-account',
       'pokemon-id',
     ];
@@ -214,6 +224,33 @@ export class FormManager {
       if (trueRadio?.checked) {
         // Show username field if YES is already selected
         const usernameSection = document.querySelector<HTMLElement>('[data-role="rph-username"]');
+        if (usernameSection) {
+          usernameSection.classList.remove('hide');
+          const inputs = usernameSection.querySelectorAll('input');
+          inputs.forEach((input) => {
+            input.required = true;
+          });
+        }
+      }
+    }
+  }
+
+  private showRiftFields(): void {
+    // Show Riftbound Account and Username fieldsets
+    const riftAccountSection = document.querySelector<HTMLElement>('[data-role="rift-account"]');
+
+    this.state.requireRiftAccount = true;
+    this.state.requireRiftUsername = true;
+
+    if (riftAccountSection) {
+      riftAccountSection.classList.remove('hide');
+
+      const trueRadio = document.querySelector<HTMLInputElement>(
+        'input[name="rift-account"][id="rift-account-true"]'
+      );
+      if (trueRadio?.checked) {
+        // Show username field if YES is already selected
+        const usernameSection = document.querySelector<HTMLElement>('[data-role="rift-username"]');
         if (usernameSection) {
           usernameSection.classList.remove('hide');
           const inputs = usernameSection.querySelectorAll('input');
@@ -360,6 +397,31 @@ export class FormManager {
       const rphUsername = this.getFormValue('field-rph-username');
       if (!rphUsername) {
         const error = 'Please enter your Ravensburger Play Hub username.';
+        this.showError(error);
+        return { valid: false, error };
+      }
+    }
+
+    // Validate Riftbound Account
+    if (this.state.requireRiftAccount) {
+      const hasRiftAccount = document.querySelector(
+        'input[name="rift-account"]:checked'
+      ) as HTMLInputElement;
+      if (!hasRiftAccount) {
+        const error = 'Please indicate if you have a Riftbound account.';
+        this.showError(error);
+        return { valid: false, error };
+      }
+      if (hasRiftAccount.id === 'rift-account-false') {
+        const error = 'You need a Riftbound account to participate in this event.';
+        this.showError(error);
+        return { valid: false, error };
+      }
+    }
+    if (this.state.requireRiftUsername) {
+      const riftUsername = this.getFormValue('field-rift-username');
+      if (!riftUsername) {
+        const error = 'Please enter your Riftbound username.';
         this.showError(error);
         return { valid: false, error };
       }

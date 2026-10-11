@@ -22,7 +22,7 @@ export function formatVariantId(id: string | null): string {
 
 const DOMAIN = 'shop.lostlevelsarcade.com';
 const TOKEN = '51611eac4adbd8d8496b9a639e0c3ef2';
-const API_VER = '2025-07';
+const API_VER = '2026-10';
 
 const client = createStorefrontApiClient({
   storeDomain: DOMAIN,
