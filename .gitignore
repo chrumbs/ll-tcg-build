@@ -28,3 +28,6 @@ typings/
 # dist
 
 .DS_Store
+
+# Local development bundles
+.dev-dist/

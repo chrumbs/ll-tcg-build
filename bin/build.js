@@ -3,8 +3,8 @@ import { readdirSync } from 'fs';
 import { join, sep } from 'path';
 
 // Config output
-const BUILD_DIRECTORY = 'dist';
 const PRODUCTION = process.env.NODE_ENV === 'production';
+const BUILD_DIRECTORY = PRODUCTION ? 'dist' : '.dev-dist';
 
 // Config entrypoint files
 const ENTRY_POINTS = ['src/index.ts', 'src/events/index.ts', 'src/global/index.ts'];

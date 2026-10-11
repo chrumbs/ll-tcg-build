@@ -95,3 +95,11 @@ Finsweet preset's deprecated `downlevelIteration` option. The `$utils/*` alias m
 directly to `./src/utils/*`, without `baseUrl`. This avoids the TypeScript 6
 deprecations while remaining compatible with the project's installed TypeScript.
 Use `pnpm check` for type checking; esbuild generates the production bundles.
+
+## Local development and production bundles
+
+`pnpm dev` serves development bundles from `.dev-dist` at `http://localhost:3000`.
+Development bundles include a live-reload connection to the local server.
+`pnpm build` writes production bundles to `dist` without live reload. Only deploy
+the production bundles in `dist`. Restart any dev server started before this
+folder separation so it no longer writes to `dist`.
