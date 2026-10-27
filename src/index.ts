@@ -1,3 +1,5 @@
+import { getPreviewEvent, isPreviewEventId } from '$utils/eventPreview';
+import { eventStatusLabels, getEventStatus, watchEventStatus } from '$utils/eventStatus';
 import { dateFormatter, moneyFormatter, timeFormatter } from '$utils/formatters';
 import { pageTransition } from '$utils/pageTransition';
 import { renderAccordions } from '$utils/renderAccordions';
@@ -26,9 +28,13 @@ window.Webflow.push(async () => {
   const productIds = [
     ...new Set(productCards.map((card) => card.getAttribute('data-product-id')).filter(Boolean)),
   ];
-  const data = await getProductsByIDs(productIds);
+  const previewProducts = productIds
+    .map((id) => getPreviewEvent(id))
+    .filter((product) => product !== null);
+  const liveIds = productIds.filter((id) => !isPreviewEventId(id));
+  const data = liveIds.length ? await getProductsByIDs(liveIds) : [];
   const productMap = new Map();
-  const productsArray = Array.isArray(data) ? data : [];
+  const productsArray = [...previewProducts, ...(Array.isArray(data) ? data : [])];
 
   productsArray.forEach((p) => {
     if (!p) {
@@ -79,7 +85,9 @@ window.Webflow.push(async () => {
       return;
     }
 
-    const productData = productMap.get(formatProductId(productId)) as ProductInfo | undefined;
+    const productData = productMap.get(
+      isPreviewEventId(productId) ? productId : formatProductId(productId)
+    ) as ProductInfo | undefined;
     if (!productData) {
       console.error(`Product not found: ${productId}`);
       return;
@@ -108,59 +116,40 @@ window.Webflow.push(async () => {
       setTextByAttr(card, 'date', dateFormatter(productData.start));
       setTextByAttr(card, 'time', timeFormatter(productData.start));
     }
-    // Check if event is in the past
-    const now = new Date();
-    const isEventPast = productData.start ? productData.start < now : false;
-    const hasSeatsAvailable = productData.seatsLeft > 0;
-    // Event is clickable only if it has seats AND hasn't started yet
-    const clickable = hasSeatsAvailable && !isEventPast;
-    // Update seats text based on availability and timing
-    let seatsText = '';
-    if (isEventPast) {
-      seatsText = 'Past Event';
-    } else if (!hasSeatsAvailable) {
-      seatsText = 'Sold Out';
-    } else {
-      seatsText = `${productData.seatsLeft} ${productData.totalCap && productData.totalCap > 0 ? `/ ${productData.totalCap} Open` : 'Open'}`;
-    }
-    setTextByAttr(card, 'seats', seatsText);
-    // Toggle clickable class for styling (e.g., cursor, hover)
-    (card as HTMLElement).classList.toggle('active', clickable);
-
-    // Overlay link approach: show/hide the full-card link based on availability
+    // Every event keeps its detail link, regardless of registration availability.
+    card.classList.add('active');
+    card.classList.remove('inactive');
+    card.removeAttribute('aria-disabled');
     const overlayLink = card.querySelector<HTMLAnchorElement>('[data-role="link"]');
     if (overlayLink) {
-      if (clickable) {
-        overlayLink.style.display = 'block';
-        overlayLink.removeAttribute('aria-hidden');
-        overlayLink.removeAttribute('tabindex');
-      } else {
-        overlayLink.style.display = 'none';
-        overlayLink.setAttribute('aria-hidden', 'true');
-        overlayLink.setAttribute('tabindex', '-1');
-      }
+      overlayLink.style.display = 'block';
+      overlayLink.removeAttribute('aria-hidden');
+      overlayLink.removeAttribute('aria-disabled');
+      overlayLink.removeAttribute('tabindex');
 
       // Optional: ensure there is an accessible label
       if (!overlayLink.getAttribute('aria-label')) {
         overlayLink.setAttribute('aria-label', productData.title || 'View event');
       }
     }
-    // Inactive state (styling + semantics) - applies to both sold out AND past events
-    if (!clickable) {
-      (card as HTMLElement).classList.add('inactive');
-      (card as HTMLElement).setAttribute('aria-disabled', 'true');
-      // Add specific class for past events (for different styling if needed)
-      if (isEventPast) {
-        (card as HTMLElement).classList.add('past-event');
+    watchEventStatus(productData.start, () => {
+      const status = getEventStatus(productData.start, productData.seatsLeft);
+      card.setAttribute('data-event-status', status);
+      card.classList.toggle('past-event', status === 'passed');
+      card.classList.toggle('sold-out', status === 'sold-out');
+      card.classList.toggle('closed', status === 'closed');
+      const seatsText =
+        status === 'open'
+          ? `${productData.seatsLeft} ${productData.totalCap && productData.totalCap > 0 ? `/ ${productData.totalCap} Open` : 'Open'}`
+          : eventStatusLabels[status];
+      setTextByAttr(card, 'seats', seatsText);
+
+      const warningEl = card.querySelector<HTMLElement>('.event_item_warning');
+      if (warningEl) {
+        setTextByAttr(warningEl, 'warning', status === 'open' ? '' : eventStatusLabels[status]);
+        warningEl.classList.toggle('hide', status === 'open');
+        warningEl.setAttribute('aria-hidden', String(status === 'open'));
       }
-      // Add specific class for sold out events (for different styling if needed)
-      if (!hasSeatsAvailable && !isEventPast) {
-        (card as HTMLElement).classList.add('sold-out');
-      }
-    } else {
-      // Remove inactive classes if event becomes available again
-      (card as HTMLElement).classList.remove('inactive', 'past-event', 'sold-out');
-      (card as HTMLElement).removeAttribute('aria-disabled');
-    }
+    });
   });
 });

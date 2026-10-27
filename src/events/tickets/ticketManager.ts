@@ -1,4 +1,5 @@
 import { debounce } from '$utils/debounce';
+import { getProductEventStatus } from '$utils/eventStatus';
 import { moneyFormatter } from '$utils/formatters';
 
 import type { CartManager, ProductNode, VariantNode } from '../types';
@@ -168,7 +169,7 @@ export class TicketManager {
 
     // Click handler
     ticketEl.addEventListener('click', () => {
-      if (qty <= 0) return;
+      if (qty <= 0 || getProductEventStatus(this.product) !== 'open') return;
       this.chosenVariantId = variant.id;
       this.setActiveTicket(ticketEl);
       debouncedUpdate();
@@ -176,7 +177,7 @@ export class TicketManager {
 
     // Keyboard handler
     ticketEl.addEventListener('keydown', (e) => {
-      if (qty <= 0) return;
+      if (qty <= 0 || getProductEventStatus(this.product) !== 'open') return;
 
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();

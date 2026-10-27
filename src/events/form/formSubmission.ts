@@ -1,4 +1,6 @@
 import { showError } from '$utils/errorHandler';
+import { isPreviewEventId } from '$utils/eventPreview';
+import { eventStatusMessages, getProductEventStatus } from '$utils/eventStatus';
 import { createCartWithLines } from '$utils/shopify';
 
 import type { CartManager, FormManager, ProductNode } from '../types';
@@ -12,7 +14,8 @@ export class FormSubmission {
     private product: ProductNode,
     private cartManager: CartManager,
     private formManager: FormManager,
-    private getChosenVariantId: () => string | null
+    private getChosenVariantId: () => string | null,
+    private onRegistrationUnavailable?: () => void
   ) {
     this.form = document.querySelector<HTMLFormElement>('[data-role="event-form"]');
     this.submitBtn = document.querySelector<HTMLButtonElement>('[data-role="submit"]');
@@ -44,6 +47,11 @@ export class FormSubmission {
       return;
     }
 
+    if (isPreviewEventId(this.product.id)) {
+      showError('This is a test event. Checkout is disabled.');
+      return;
+    }
+
     // Disable submit button during processing
     this.disableSubmitButton();
 
@@ -64,6 +72,14 @@ export class FormSubmission {
   }
 
   private validateForm(): { valid: boolean; error?: string } {
+    // A page may have been opened before the two-hour registration cutoff.
+    const status = getProductEventStatus(this.product);
+    if (status !== 'open') {
+      this.disableSubmitButton();
+      this.onRegistrationUnavailable?.();
+      return { valid: false, error: eventStatusMessages[status] };
+    }
+
     const chosenVariantId = this.getChosenVariantId();
 
     if (!chosenVariantId) {
@@ -194,6 +210,10 @@ export class FormSubmission {
   }
 
   private enableSubmitButton(): void {
+    if (getProductEventStatus(this.product) !== 'open') {
+      this.disableSubmitButton();
+      return;
+    }
     if (this.submitBtn && this.submitBtn.disabled) {
       this.submitBtn.disabled = false;
     }

@@ -1,4 +1,12 @@
 import { showError } from '$utils/errorHandler';
+import { getPreviewEvent, isPreviewEventId } from '$utils/eventPreview';
+import type { EventStatus } from '$utils/eventStatus';
+import {
+  eventStatusLabels,
+  eventStatusMessages,
+  getProductEventStatus,
+  watchEventStatus,
+} from '$utils/eventStatus';
 import { dateFormatter, timeFormatter } from '$utils/formatters';
 import { pageTransition } from '$utils/pageTransition';
 import { renderAccordions } from '$utils/renderAccordions';
@@ -30,14 +38,15 @@ window.Webflow.push(async () => {
   const cmsID = metaEl?.getAttribute('data-id') || undefined;
   const urlHandle = location.pathname.split('/').filter(Boolean).pop();
   const handle = cmsHandle || urlHandle || '';
-  let product: ProductNode | null = await getEventByHandle(handle);
+  const isPreview = isPreviewEventId(cmsID);
+  let product: ProductNode | null = isPreview ? getPreviewEvent(cmsID) : null;
 
-  if (handle) {
+  if (!isPreview && handle) {
     console.info('[events] Fetching by handle:', handle);
     product = await getEventByHandle(handle);
   }
 
-  if (!product && cmsID) {
+  if (!isPreview && !product && cmsID) {
     console.info('[events] Handle failed, trying CMS ID:', cmsID);
     try {
       product = await getEventByID(cmsID);
@@ -59,28 +68,11 @@ window.Webflow.push(async () => {
     return;
   }
 
-  // console.info('[events] Loaded product:', product);
-
+  setProductInfo(product);
   const start = product.startTime?.value ? new Date(product.startTime.value) : null;
-  const now = new Date();
-  const isEventPast = start ? start < now : false;
-  if (isEventPast) {
-    setProductInfo(product);
-    eventPassed();
-    return;
-  }
-
-  const variants = product.variants?.edges?.map((e) => e.node) || [];
-  const totalSeatsAvailable = variants.reduce(
-    (sum, variant) => sum + (variant.quantityAvailable || 0),
-    0
-  );
-
-  if (totalSeatsAvailable <= 0) {
-    setProductInfo(product);
-    eventSoldOut();
-    return;
-  }
+  const refreshStatus = () => renderEventStatus(getProductEventStatus(product));
+  watchEventStatus(start, refreshStatus);
+  if (getProductEventStatus(product) !== 'open') return;
 
   // Initialize managers
   const cartEl = document.querySelector<HTMLElement>('[data-role="cart"]');
@@ -96,17 +88,19 @@ window.Webflow.push(async () => {
   const formManager = new FormManager(product);
   const ticketManager = new TicketManager(product, cartManager);
   const upsellManager = new UpsellManager(product, cartManager);
-  const formSubmission = new FormSubmission(product, cartManager, formManager, () =>
-    ticketManager.getChosenVariantId()
+  const formSubmission = new FormSubmission(
+    product,
+    cartManager,
+    formManager,
+    () => ticketManager.getChosenVariantId(),
+    refreshStatus
   );
-
-  // Set basic product info
-  setProductInfo(product);
 
   // Initialize components
   await ticketManager.render();
   await upsellManager.render();
   formSubmission.setupFormHandler();
+  refreshStatus();
 });
 
 function setProductInfo(product: ProductNode) {
@@ -124,13 +118,33 @@ function setProductInfo(product: ProductNode) {
   );
 }
 
-function eventPassed() {
+function renderEventStatus(status: EventStatus) {
+  document.querySelector('.event_content_wrapper')?.setAttribute('data-event-status', status);
+  const contentEl = document.querySelector<HTMLElement>('.event_content_warning');
+  if (contentEl) {
+    contentEl.classList.remove('w-condition-invisible');
+    contentEl.classList.toggle('hide', status === 'open');
+    contentEl.setAttribute('aria-hidden', String(status === 'open'));
+    const message = contentEl.querySelector('h4, .heading-style-h4');
+    if (message && status !== 'open') {
+      message.textContent = eventStatusMessages[status];
+    }
+  }
+  if (status === 'open') return;
+
   const submitBtn = document.querySelector<HTMLButtonElement>('[data-role="submit"]');
   if (submitBtn) {
     submitBtn.disabled = true;
+    submitBtn.classList.add('disabled');
+    // Webflow submit controls can be input[type="submit"] or button elements.
+    if (submitBtn instanceof HTMLInputElement) {
+      submitBtn.value = eventStatusLabels[status];
+    } else {
+      submitBtn.textContent = eventStatusLabels[status];
+    }
   }
   updateLayout();
-  setTextByAttr(document, 'seats', 'Event Completed');
+  setTextByAttr(document, 'seats', eventStatusLabels[status]);
 }
 
 function eventNotFound() {
@@ -152,25 +166,6 @@ function eventNotFound() {
   }
 }
 
-function eventSoldOut() {
-  const submitBtn = document.querySelector<HTMLButtonElement>('[data-role="submit"]');
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.classList.add('disabled');
-    submitBtn.textContent = 'Sold Out';
-  }
-  const contentEl = document.querySelector('.event_content_passed');
-  if (contentEl) {
-    contentEl.classList.remove('w-condition-invisible');
-    const message = contentEl.querySelector('.heading-style-h4');
-    if (message) {
-      message.textContent = 'This event is sold out';
-    }
-  }
-  updateLayout();
-  setTextByAttr(document, 'seats', 'Sold Out');
-}
-
 function updateLayout() {
   const formEl = document.querySelector('.event_content_form');
   if (formEl) {
@@ -181,11 +176,18 @@ function updateLayout() {
   if (ticketsEl) {
     ticketsEl.forEach((ticketEl) => {
       ticketEl.classList.add('sold-out');
+      ticketEl.setAttribute('aria-disabled', 'true');
+      ticketEl.setAttribute('tabindex', '-1');
     });
   }
   const upsellsEl = document.querySelector('.event_content_upsell');
   if (upsellsEl) {
     upsellsEl.classList.add('hide');
     upsellsEl.setAttribute('aria-hidden', 'true');
+  }
+  const cartEl = document.querySelector<HTMLElement>('[data-role="cart"]');
+  if (cartEl) {
+    cartEl.classList.add('hide');
+    cartEl.setAttribute('aria-hidden', 'true');
   }
 }
