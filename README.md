@@ -4,8 +4,8 @@ LL TCG built with Webflow and Shopify Storefront API.
 
 ## Event registration states
 
-Registration closes exactly two hours before the Shopify product's
-`custom.start_time`. For a 6:00 PM event, new registrations close at 4:00 PM.
+Registration closes exactly one hour before the Shopify product's
+`custom.start_time`. For a 6:00 PM event, new registrations close at 5:00 PM.
 Keep this date/time accurate, including its timezone offset.
 
 The listing and detail page use the same state rules, in this order:
@@ -13,7 +13,7 @@ The listing and detail page use the same state rules, in this order:
 | State      | Condition                          | Listing label            | Detail warning                |
 | ---------- | ---------------------------------- | ------------------------ | ----------------------------- |
 | `passed`   | Start time has been reached        | Past Event               | This event has passed.        |
-| `closed`   | Within two hours before the start  | Registration Closed      | Event registration is closed. |
+| `closed`   | Within one hour before the start   | Registration Closed      | Event registration is closed. |
 | `sold-out` | Before the cutoff, no seats remain | Sold Out                 | This event is sold out.       |
 | `open`     | Before the cutoff, seats remain    | Existing open seat count | Hidden                        |
 
@@ -95,7 +95,7 @@ checkout already created before the cutoff or enforce a checkout-side deadline.
 Build and deploy both `dist/index.js` (listings) and `dist/events/index.js`
 (details), then publish the Webflow changes. Verify links work for all four
 states, the warning is outside hidden sections, and an open page closes at the
-two-hour boundary. The boundary and registration tests run with
+one-hour boundary. The boundary and registration tests run with
 `pnpm exec playwright test tests/event-registration.spec.ts --project=chromium`.
 
 ## Preview event states without Shopify products
@@ -103,12 +103,12 @@ two-hour boundary. The boundary and registration tests run with
 On Webflow staging (`*.webflow.io`) or localhost, these reserved product ID values
 load built-in sample events instead of requesting a Shopify product:
 
-| CMS product ID  | State on load | Sample start              | Seats   |
-| --------------- | ------------- | ------------------------- | ------- |
-| `test-open`     | Open          | Four hours from page load | 8 of 16 |
-| `test-closed`   | Closed        | One hour from page load   | 8 of 16 |
-| `test-passed`   | Passed        | One hour before page load | 8 of 16 |
-| `test-sold-out` | Sold out      | Four hours from page load | 0 of 16 |
+| CMS product ID  | State on load | Sample start                | Seats   |
+| --------------- | ------------- | --------------------------- | ------- |
+| `test-open`     | Open          | Two hours from page load    | 8 of 16 |
+| `test-closed`   | Closed        | 30 minutes from page load   | 8 of 16 |
+| `test-passed`   | Passed        | 30 minutes before page load | 8 of 16 |
+| `test-sold-out` | Sold out      | Two hours from page load    | 0 of 16 |
 
 Create one test event CMS item and change its product ID to preview each state,
 or create four items to compare them together. These are values for the CMS

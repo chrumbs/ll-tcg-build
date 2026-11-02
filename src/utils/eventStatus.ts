@@ -2,7 +2,7 @@ import type { ProductNode } from '../events/types';
 
 export type EventStatus = 'open' | 'closed' | 'passed' | 'sold-out';
 
-export const REGISTRATION_BUFFER_MS = 2 * 60 * 60 * 1000;
+export const REGISTRATION_BUFFER_MS = 60 * 60 * 1000;
 
 export const eventStatusLabels: Record<Exclude<EventStatus, 'open'>, string> = {
   closed: 'Registration Closed',

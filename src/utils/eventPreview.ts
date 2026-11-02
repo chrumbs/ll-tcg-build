@@ -15,8 +15,9 @@ export function getPreviewEvent(
   if (!previewHost) return null;
 
   const state = id.slice('test-'.length);
-  const hour = REGISTRATION_BUFFER_MS / 2;
-  const startOffset = state === 'passed' ? -hour : state === 'closed' ? hour : 4 * hour;
+  const halfBuffer = REGISTRATION_BUFFER_MS / 2;
+  const startOffset =
+    state === 'passed' ? -halfBuffer : state === 'closed' ? halfBuffer : 2 * REGISTRATION_BUFFER_MS;
 
   return {
     id,

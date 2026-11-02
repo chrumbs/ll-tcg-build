@@ -128,7 +128,11 @@ const detailMarkup = `
   </main>
 `;
 
-test('two-hour boundary, start boundary, inventory and timezone offsets', () => {
+test('one-hour boundary, start boundary, inventory and timezone offsets', () => {
+  const hour = 60 * 60 * 1000;
+  expect(getEventStatus(start, 5, start.getTime() - 1.5 * hour)).toBe('open');
+  expect(getEventStatus(start, 5, start.getTime() - hour - 1)).toBe('open');
+  expect(getEventStatus(start, 5, start.getTime() - hour)).toBe('closed');
   expect(getEventStatus(start, 5, cutoff - 1)).toBe('open');
   expect(getEventStatus(start, 5, cutoff)).toBe('closed');
   expect(getEventStatus(start, 5, start.getTime() - 1)).toBe('closed');
@@ -162,7 +166,7 @@ for (const state of [
     now: start.getTime(),
     seats: 5,
     label: 'Past Event',
-    warning: 'This event has started. Registration is closed.',
+    warning: 'This event has passed.',
   },
 ]) {
   test(`${state.status} listing keeps its link accessible`, async ({ page }) => {

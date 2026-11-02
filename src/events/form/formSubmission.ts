@@ -72,7 +72,7 @@ export class FormSubmission {
   }
 
   private validateForm(): { valid: boolean; error?: string } {
-    // A page may have been opened before the two-hour registration cutoff.
+    // A page may have been opened before the registration cutoff.
     const status = getProductEventStatus(this.product);
     if (status !== 'open') {
       this.disableSubmitButton();
